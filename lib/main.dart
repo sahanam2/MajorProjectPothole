@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
     return StreamProvider<User>.value(
       value: AuthService().user,
       child: MaterialApp(
-        title: 'Pothole Detection Application',
+        title: 'Safar',
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),

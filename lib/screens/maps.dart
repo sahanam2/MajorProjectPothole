@@ -7,6 +7,7 @@ class ViewMap extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: "Safar",
       debugShowCheckedModeBanner: false,
       home: ViewMapPage(),
     );

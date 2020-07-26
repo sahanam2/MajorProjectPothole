@@ -70,15 +70,16 @@ class _AlertModeState extends State<AlertMode>
     int check = 0;
     for (int i = 0; i < listloc.length; i++) {
       double newd;
-      print(i);
-      print(listloc[i].lat);
+      // print(i);
+      // print(listloc[i].lat);
       newd = calculateDistance(position.latitude, position.longitude,
           listloc[i].lat, listloc[i].lon);
-      print(newd);
-      if (newd < 0.06
+      // print(newd);
+      if (newd < 0.07
           // )
           &&
           newd > 0.04) {
+            print(newd);
         check = 1;
         break;
       } else {

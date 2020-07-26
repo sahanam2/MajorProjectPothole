@@ -85,7 +85,7 @@ class _CameraModeState extends State<CameraMode> {
     var length = await _image.length();
 
     // string to uri
-    var uri = Uri.parse("https://777394a5f283.ngrok.io");
+    var uri = Uri.parse('http://b0a52610a834.ngrok.io/detections');
 
     // create multipart request
     var request = new http.MultipartRequest("POST", uri);
@@ -103,8 +103,20 @@ class _CameraModeState extends State<CameraMode> {
     var response = await http.Response.fromStream(streamedResponse);
     print(response.body);
 
-    if (response.statusCode == 200) {
-    } else {
+    if (response.statusCode != 200) {
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            // return object of type Dialog
+            return AlertDialog(
+              title:
+                  new Text("Could not connect to server.\n Please try again"),
+            );
+          });
+      setState(() {
+        _image = null;
+        pothole = 0;
+      });
       throw Exception('Failed to connect');
     }
     final jsonResponse = json.decode(response.body);
@@ -132,6 +144,7 @@ class _CameraModeState extends State<CameraMode> {
     setState(() {
       confirm = 1;
     });
+    getList();
     final position = await Geolocator()
         .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
     print(position);
@@ -202,6 +215,8 @@ class _CameraModeState extends State<CameraMode> {
         uploadData(uid, loc_lat2, loc_lon2, time, loc_pin, current_address, url,
             place, priority, survey);
       }
+      _image = null;
+      pothole = 0;
     });
   }
 
@@ -224,7 +239,7 @@ class _CameraModeState extends State<CameraMode> {
       Placemark place,
       var priority,
       String survey) async {
-    getList();
+    //getList();
     var dateref = DateFormat("ddMMyyyy_hhmmss")
         .format(DateTime.parse(timeStamp.toString()));
     docId = "Loc_" +
@@ -327,26 +342,32 @@ class _CameraModeState extends State<CameraMode> {
                     : pothole == 1
                         ? uploadthewholething()
                         : Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Image.file(_image, height: 300.0, width: 300.0),
-                              SizedBox(height: 30.0),
-                              FlatButton(
-                              color: Colors.transparent,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(80.0),
-                      side: BorderSide(color: Colors.black) ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(12.0),
-                                    child: Text("UPLOAD IMAGE", style: TextStyle(color: Colors.black)),
-                                  ),
-                                  onPressed: () {
-                                    SizedBox(height: 0, width: 0);
-                                    verify();
-                                  })
-                            ]),
-                        )
+                            child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: <Widget>[
+                                  Image.file(_image,
+                                      height: 300.0, width: 300.0),
+                                  SizedBox(height: 30.0),
+                                  FlatButton(
+                                      color: Colors.transparent,
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(80.0),
+                                          side:
+                                              BorderSide(color: Colors.black)),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(12.0),
+                                        child: Text("UPLOAD IMAGE",
+                                            style:
+                                                TextStyle(color: Colors.black)),
+                                      ),
+                                      onPressed: () {
+                                        //SizedBox(height: 0, width: 0);
+                                        verify();
+                                      })
+                                ]),
+                          ),
+                confirmFunct(),
               ],
             ),
           )
@@ -441,79 +462,94 @@ class _CameraModeState extends State<CameraMode> {
   int roadgroup, sizegroup, placegroup;
   uploadthewholething() {
     // pothole=0;
-    return Container(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Text('.'),
-          Text(
-            'On what kind of road is this pothole present?',
-            style: TextStyle(fontSize: 19),
-          ),
-          RadioListTile(
-              value: 1,
-              groupValue: roadgroup,
-              title: const Text('Main road'),
-              onChanged: roadtype),
-          RadioListTile(
-              value: 2,
-              groupValue: roadgroup,
-              title: const Text('Residential road'),
-              onChanged: roadtype),
-          Text(
-            'Where is this pothole located on the road?',
-            style: TextStyle(fontSize: 19),
-          ),
-          RadioListTile(
-              value: 1,
-              groupValue: placegroup,
-              title: const Text('Centre of the road'),
-              onChanged: roadplace),
-          RadioListTile(
-              value: 2,
-              groupValue: placegroup,
-              title: const Text('Edge of the road'),
-              onChanged: roadplace),
-          Text(
-            'What is the approximate size of the pothole?',
-            style: TextStyle(fontSize: 19),
-          ),
-          RadioListTile(
-              value: 1,
-              groupValue: sizegroup,
-              title: const Text('Big pothole'),
-              onChanged: size),
-          RadioListTile(
-              value: 2,
-              groupValue: sizegroup,
-              title: const Text('Small pothole'),
-              onChanged: size),
-          RaisedButton(
-              child: Text("Done"),
-              onPressed: () async {
-                setState(() {
-                  confirm = 2;
-                });
-                if (p1)
-                  surveypriority = "High";
-                else if (!p1 && !p3)
-                  surveypriority = "Low";
-                else
-                  surveypriority = "IMedium";
-                var time = new DateTime.now();
-                final StorageReference firebaseStorageRef =
-                    FirebaseStorage.instance.ref().child('PotholeImages/$time');
-                final StorageUploadTask task =
-                    firebaseStorageRef.putFile(_image);
+    return SingleChildScrollView(
+          child: Container(
+        child: Padding(
+          padding: const EdgeInsets.all(14.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              //Text('.'),
+              Text(
+                'On what kind of road is this pothole present?',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              RadioListTile(
+                  value: 1,
+                  groupValue: roadgroup,
+                  title: const Text('Main road'),
+                  onChanged: roadtype),
+              RadioListTile(
+                  value: 2,
+                  groupValue: roadgroup,
+                  title: const Text('Residential road'),
+                  onChanged: roadtype),
+              Text(
+                'Where is this pothole located on the road?',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              RadioListTile(
+                  value: 1,
+                  groupValue: placegroup,
+                  title: const Text('Centre of the road'),
+                  onChanged: roadplace),
+              RadioListTile(
+                  value: 2,
+                  groupValue: placegroup,
+                  title: const Text('Edge of the road'),
+                  onChanged: roadplace),
+              Text(
+                'What is the approximate size of the pothole?',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              RadioListTile(
+                  value: 1,
+                  groupValue: sizegroup,
+                  title: const Text('Big pothole'),
+                  onChanged: size),
+              RadioListTile(
+                  value: 2,
+                  groupValue: sizegroup,
+                  title: const Text('Small pothole'),
+                  onChanged: size),
+              FlatButton(
+                                        color: Colors.transparent,
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(80.0),
+                                            side:
+                                                BorderSide(color: Colors.black)),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(12.0),
+                                          child: Text("DONE",
+                                              style:
+                                                  TextStyle(color: Colors.black)),
+                                        ),
+                  onPressed: () async {
+//                setState(() {
+//                  confirm = 2;
+//                });
+                    if (p1)
+                      surveypriority = "High";
+                    else if (!p1 && !p3)
+                      surveypriority = "Low";
+                    else
+                      surveypriority = "IMedium";
+                    var time = new DateTime.now();
+                    final StorageReference firebaseStorageRef =
+                        FirebaseStorage.instance.ref().child('PotholeImages/$time');
+                    final StorageUploadTask task =
+                        firebaseStorageRef.putFile(_image);
 
-                var downloadUrl =
-                    await (await task.onComplete).ref.getDownloadURL();
-                var url;
-                url = downloadUrl.toString();
+                    //   var downloadUrl =
+                    //     await (await task.onComplete).ref.getDownloadURL();
+                    var url;
+                    //url = downloadUrl.toString();
 //print(priority);
-                _getCurrentLocation(url, surveypriority);
-              }),
-        ],
+                    _getCurrentLocation(url, surveypriority);
+                  }),
+            ],
+          ),
+        ),
       ),
     );
   } //  enableUpload() {
@@ -544,9 +580,6 @@ class _CameraModeState extends State<CameraMode> {
 //      ),
 //    );
 //  }
-  void Swap(int val) {
-    if (val == 1) ;
-  }
 
   Widget confirmFunct() {
     switch (confirm) {
@@ -556,7 +589,7 @@ class _CameraModeState extends State<CameraMode> {
               child: Column(
             children: <Widget>[
               CircularProgressIndicator(),
-              Text("\nGetting your location")
+              Text("\nGetting your location", textAlign: TextAlign.center),
             ],
           ));
         }
@@ -568,7 +601,7 @@ class _CameraModeState extends State<CameraMode> {
               child: Column(
             children: <Widget>[
               CircularProgressIndicator(),
-              Text("\n    Uploading image. \nThis might take a while")
+              Text("\n    Uploading image. \nThis might take a while", textAlign: TextAlign.center)
             ],
           ));
         }
@@ -579,7 +612,8 @@ class _CameraModeState extends State<CameraMode> {
               child: Column(
             children: <Widget>[
               CircularProgressIndicator(),
-              Text("\n\t Verifying image. \nThis might take a while")
+              Text(
+                  "\nConnecting to server and verifying image. \nThis might take a while", textAlign: TextAlign.center)
             ],
           ));
         }
@@ -598,8 +632,12 @@ class _CameraModeState extends State<CameraMode> {
         builder: (BuildContext context) {
           // return object of type Dialog
           return AlertDialog(
-            title: new Text("Could not identify a pothole. Please try again"),
+            title: new Text("Could not identify a pothole.\n Please try again"),
           );
         });
+    setState(() {
+      _image = null;
+      pothole = 0;
+    });
   }
 }

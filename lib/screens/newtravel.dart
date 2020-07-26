@@ -267,18 +267,18 @@ class _TravelModeState extends State<TravelMode> {
           //   // title: Text("Travel Mode"),
           // )
           // ),
-          body: (!isLoading)
-              ? Center(
-                  child: CircularProgressIndicator(),
-                )
-              : DecoratedBox(
+          body: DecoratedBox(
                   decoration: BoxDecoration(
                     image: DecorationImage(
                         image:
                             AssetImage("assets/bgimages/wallpaperdesign.png"),
                         fit: BoxFit.cover),
                   ),
-                  child: Center(
+                  child: (!isLoading)
+              ? Center(
+                  child: CircularProgressIndicator(),
+                )
+              : Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[

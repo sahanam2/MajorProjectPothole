@@ -21,9 +21,11 @@ class _SplashPageState extends State<SplashPage> {
               if (currentUser == null)
                 {
                   print(currentUser),
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => OnboardingScreen()))
-                } 
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => OnboardingScreen()))
+                }
               else
                 {
                   Firestore.instance
@@ -50,10 +52,13 @@ class _SplashPageState extends State<SplashPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Container(
-          child: CircularProgressIndicator(),
+      body: DecoratedBox(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+              image: AssetImage("assets/bgimages/wallpaperdesign.png"),
+              fit: BoxFit.cover),
         ),
+        child: Center(child: Text("SAFAR", style: TextStyle(fontSize: 30.0)))
       ),
     );
   }

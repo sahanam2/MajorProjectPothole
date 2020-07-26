@@ -10,7 +10,7 @@
     
     <application
         android:name="io.flutter.app.FlutterApplication"
-        android:label="potholedetection"
+        android:label="Safar"
         android:icon="@mipmap/ic_launcher">
 
         <meta-data 

@@ -79,6 +79,7 @@ class MapsDemoState extends State<MapsDemo> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'Safar',
       home: Scaffold(
         appBar: AppBar(
           title: Text(widget.title),
