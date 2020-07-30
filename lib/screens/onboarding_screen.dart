@@ -104,7 +104,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             padding:
                                 const EdgeInsets.symmetric(horizontal: 60.0),
                             child: Text(
-                              'The one-stop destination to help create pothole free roads ',
+                              'The one-stop destination to make roads pothole free! ',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                   fontSize: 16,
@@ -153,7 +153,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               width: 300.0,
                             ),
                             Text(
-                              'Hands-free Dectection!',
+                              'Hands-free Detection!',
                               style: TextStyle(
                                   fontSize: 30,
                                   fontWeight: FontWeight.bold,

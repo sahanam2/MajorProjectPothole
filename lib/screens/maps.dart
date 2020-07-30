@@ -1,15 +1,25 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:potholedetection/screens/New/home.dart';
 import 'package:potholedetection/screens/try2.dart';
 
 class ViewMap extends StatelessWidget {
+  final String uid;
+
+  const ViewMap({Key key, this.uid}) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: "Safar",
-      debugShowCheckedModeBanner: false,
-      home: ViewMapPage(),
+    return WillPopScope(
+      onWillPop: () {
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => HomePage(uid, "2")));
+      },
+      child: MaterialApp(
+        title: "Safar",
+        debugShowCheckedModeBanner: false,
+        home: ViewMapPage(),
+      ),
     );
   }
 }

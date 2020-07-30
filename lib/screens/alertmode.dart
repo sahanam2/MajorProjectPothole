@@ -1,15 +1,16 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:audioplayers/audio_cache.dart';
-import 'package:audioplayers/audioplayers.dart';
+// import 'package:audioplayers/audio_cache.dart';
+// import 'package:audioplayers/audioplayers.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:math' show cos, sqrt, asin;
 import 'package:flutter/services.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:potholedetection/screens/New/home.dart';
-import 'package:vibrate/vibrate.dart';
+import 'package:flutter_vibrate/flutter_vibrate.dart';
 
 class AlertMode extends StatefulWidget {
   final String uid;
@@ -34,14 +35,16 @@ class _AlertModeState extends State<AlertMode>
   int check = 1;
   // Widget color=color:Colors.blue;
   Widget wid = Container(color: Colors.blue);
+  final player = AudioPlayer();
 
-  void initState() {
+  initState() {
     getlist();
     _animationController =
         new AnimationController(vsync: this, duration: Duration(seconds: 1));
     _animationController.repeat();
-
-    timer = Timer.periodic(Duration(seconds: 5), (Timer t) => getLocation());
+    getLocation();
+    timer = Timer.periodic(Duration(seconds: 15), (Timer t) => getLocation());
+    
 
     super.initState();
   }
@@ -61,6 +64,7 @@ class _AlertModeState extends State<AlertMode>
   }
 
   getLocation() async {
+    await player.setAsset('assets/alerting.mp3');
     Position _position = await Geolocator()
         .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
     if (!mounted) return;
@@ -74,32 +78,36 @@ class _AlertModeState extends State<AlertMode>
       // print(listloc[i].lat);
       newd = calculateDistance(position.latitude, position.longitude,
           listloc[i].lat, listloc[i].lon);
-      // print(newd);
+      print(newd);
       if (newd < 0.07
           // )
           &&
-          newd > 0.04) {
-            print(newd);
+          newd > 0.03) {
+        print(newd);
         check = 1;
         break;
       } else {
         check = 0;
       }
     }
-    print("Checkkkk");
-    print(check);
+    // print("Checkkkk");
+    // print(check);
     if (check == 1) {
       if (!mounted) return;
-      print("Truee");
-      setState(() async {
+      setState(() {
+
+        //  print(newd);
         alerting = 1;
         Vibrate.vibrate();
-        AudioCache cache = new AudioCache();
-        wid = Container(color: Colors.red);
-        return await cache.play("alerting.mp3");
+        player.play();
       });
+      print("Truee");
+      return;
+
+      // await
+
     } else {
-      if (!mounted) return;
+      // if (!mounted) return;
       setState(() {
         wid = Container(
           color: Colors.blue,
@@ -108,7 +116,9 @@ class _AlertModeState extends State<AlertMode>
       });
     }
     // }ss
-    setState(() {});
+    setState(() {
+      alerting = 0;
+    });
   }
 
   putinlist() {
@@ -131,7 +141,7 @@ class _AlertModeState extends State<AlertMode>
   Widget build(BuildContext context) {
     // if(mounted) return
     if (check == 1) {
-      getLocation();
+      // getLocation();
     }
 
     return Scaffold(
@@ -149,12 +159,13 @@ class _AlertModeState extends State<AlertMode>
         children: <Widget>[
           Expanded(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-              (alerting == 1)
-                  ? Image(image: AssetImage("assets/bgimages/alerty.png"))
-                  : Image(image: AssetImage("assets/bgimages/alertybw.png")),
-            ]),
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  (alerting == 1)
+                      ? Image(image: AssetImage("assets/bgimages/alerty.png"))
+                      : Image(
+                          image: AssetImage("assets/bgimages/alertybw.png")),
+                ]),
           ),
           Align(
               alignment: Alignment.bottomCenter,
@@ -167,20 +178,22 @@ class _AlertModeState extends State<AlertMode>
                         side: BorderSide(color: Colors.black)),
                     child: Padding(
                       padding: const EdgeInsets.all(18.0),
-                      child: Text("STOP", style: TextStyle(color: Colors.white)),
+                      child:
+                          Text("STOP", style: TextStyle(color: Colors.white)),
                     ),
-                    onPressed: () {
+                    onPressed: () async {
                       setState(() {
-                    timer?.cancel();
-                    check = 0;
-                  });
-                 Navigator.push(context,
-              MaterialPageRoute(builder: (context) => HomePage(widget.uid)));
+                        timer?.cancel();
+                        check = 0;
+                      });
+                      await player.dispose();
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => HomePage(widget.uid, "2")));
                     }),
               )),
-            SizedBox(
-              height: 50.0
-            )
+          SizedBox(height: 50.0)
         ],
       ))
     ]));
@@ -205,12 +218,12 @@ class _AlertModeState extends State<AlertMode>
   //               ),
   //               onPressed: () {
 
-              //     setState(() {
-              //       timer?.cancel();
-              //       check = 0;
-              //     });
-              //    Navigator.push(context,
-              // MaterialPageRoute(builder: (context) => HomePage(widget.uid)));
+  //     setState(() {
+  //       timer?.cancel();
+  //       check = 0;
+  //     });
+  //    Navigator.push(context,
+  // MaterialPageRoute(builder: (context) => HomePage(widget.uid)));
   //       },
   //               padding: EdgeInsets.all(12),
   //               color: Colors.white,

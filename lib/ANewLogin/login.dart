@@ -20,6 +20,7 @@ class _LoginPageState extends State<LoginPage> {
   final GlobalKey<FormState> _loginFormKey = GlobalKey<FormState>();
   TextEditingController emailInputController;
   TextEditingController pwdInputController;
+  String error = "";
 
   @override
   initState() {
@@ -39,13 +40,13 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  String pwdValidator(String value) {
-    if (value.length < 8) {
-      return 'Password must be longer than 8 characters';
-    } else {
-      return null;
-    }
-  }
+  // String pwdValidator(String value) {
+  //   if (value.length < 8) {
+  //     return 'Password must be longer than 8 characters';
+  //   } else {
+  //     return null;
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -79,19 +80,18 @@ class _LoginPageState extends State<LoginPage> {
                 key: _loginFormKey,
                 child: Column(
                   children: <Widget>[
+                    Text(error, style: TextStyle(color: Colors.red),),
                     TextFormField(
-                      decoration: InputDecoration(
-                          labelText: 'Email*', hintText: "john.doe@gmail.com"),
+                      decoration: InputDecoration(labelText: 'Email*'),
                       controller: emailInputController,
                       keyboardType: TextInputType.emailAddress,
                       validator: emailValidator,
                     ),
                     TextFormField(
-                      decoration: InputDecoration(
-                          labelText: 'Password*', hintText: "********"),
+                      decoration: InputDecoration(labelText: 'Password*'),
                       controller: pwdInputController,
                       obscureText: true,
-                      validator: pwdValidator,
+                      // validator: pwdValidator,
                     ),
                     SizedBox(
                       height: 30.0,
@@ -107,18 +107,30 @@ class _LoginPageState extends State<LoginPage> {
                                     email: emailInputController.text,
                                     password: pwdInputController.text)
                                 .then((currentUser) => Firestore.instance
-                                    .collection("users")
-                                    .document(currentUser.user.uid)
-                                    .get()
-                                    .then((DocumentSnapshot result) =>
-                                        Navigator.pushReplacement(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: (context) => HomePage(
-                                                      currentUser.user.uid,
-                                                    ))))
-                                    .catchError((err) => print(err)))
-                                .catchError((err) => print(err));
+                                        .collection("users")
+                                        .document(currentUser.user.uid)
+                                        .get()
+                                        .then((DocumentSnapshot result) =>
+                                            Navigator.pushReplacement(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        HomePage(
+                                                            currentUser
+                                                                .user.uid,
+                                                            "2"))))
+                                        .catchError((err) {
+                                      print(err);
+                                      setState(() {
+                                        error = "Invalid credentials";
+                                      });
+                                    }))
+                                .catchError((err) {
+                              print(err);
+                              setState(() {
+                                error = "Invalid credentials";
+                              });
+                            });
                           }
                         },
                         shape: RoundedRectangleBorder(

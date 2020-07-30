@@ -135,35 +135,39 @@ class _TravelModeState extends State<TravelMode> {
 
     if (list.length != null) {
       for (int i = 0; i < list.length; i++) {
-        if (list[i].data["lat"].toString().substring(0, 7) ==
-                loc_lat.toString().substring(0, 7) &&
-            list[i].data["lon"].toString().substring(0, 7) ==
-                loc_lon.toString().substring(0, 7) &&
-            list[i].data["userid"] != uid || list[i].data["address"] == current_address &&
-            list[i].data["userid"] != uid) {
+        if (list[i].data["lat"].toString().substring(0, 6) ==
+                    loc_lat.toString().substring(0, 6) &&
+                list[i].data["lon"].toString().substring(0, 6) ==
+                    loc_lon.toString().substring(0, 6) &&
+                list[i].data["userid"] != uid ||
+            list[i].data["address"] == current_address &&
+                list[i].data["userid"] != uid) {
           print(list[i].data["userid"]);
           print(uid);
           if (mounted)
             setState(() {
               count++;
             });
-          var p = list[i].data["priority"];
+          var p = list[i].data["NumberOfReportings"];
           print("Priority is: " + p.toString());
           databaseReference
               .collection("location_travel")
               .document(list[i].documentID)
               .updateData({
-            "priority": p + 1,
+            "NumberOfReportings": p + 1,
             "timeStamp": DateTime.now(),
+            "userid": uid,
           }).then((_) {
             print("update success!");
           });
           break;
-        } else if (list[i].data["lat"].toString().substring(0, 6) == loc_lat.toString().substring(0, 6) &&
-            list[i].data["lon"].toString().substring(0, 6) ==
-                loc_lon.toString().substring(0, 6) &&
-            list[i].data["userid"] == uid || list[i].data["address"].toString() == current_address &&
-            list[i].data["userid"] == uid) {
+        } else if (list[i].data["lat"].toString().substring(0, 6) ==
+                    loc_lat.toString().substring(0, 6) &&
+                list[i].data["lon"].toString().substring(0, 6) ==
+                    loc_lon.toString().substring(0, 6) &&
+                list[i].data["userid"] == uid ||
+            list[i].data["address"].toString() == current_address &&
+                list[i].data["userid"] == uid) {
           print("DO NOT UPDATE");
           //ToDo: Remove the following setstate fn
 //          setState(() {
@@ -229,16 +233,16 @@ class _TravelModeState extends State<TravelMode> {
     });
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-    //if(!mounted) return;
-    for (StreamSubscription<dynamic> subscription in _streamSubscriptions) {
-      subscription?.cancel();
-//accel.cancel();
+//   @override
+//   void dispose() {
+//     super.dispose();
+//     //if(!mounted) return;
+//     for (StreamSubscription<dynamic> subscription in _streamSubscriptions) {
+//       subscription?.cancel();
+// //accel.cancel();
 
-    }
-  }
+//     }
+//   }
 
   void pause([Future resume]) {
     for (StreamSubscription<dynamic> subscription in _streamSubscriptions) {
@@ -257,7 +261,8 @@ class _TravelModeState extends State<TravelMode> {
     // print("Shubhra".substring(0, 3));
     return WillPopScope(
         onWillPop: () {
-          Navigator.pop(context);
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => HomePage(this.uid, "2")));
           accel.cancel();
         },
         child: Scaffold(
@@ -268,119 +273,193 @@ class _TravelModeState extends State<TravelMode> {
           // )
           // ),
           body: DecoratedBox(
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                        image:
-                            AssetImage("assets/bgimages/wallpaperdesign.png"),
-                        fit: BoxFit.cover),
-                  ),
-                  child: (!isLoading)
-              ? Center(
-                  child: CircularProgressIndicator(),
-                )
-              : Center(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                  image: AssetImage("assets/bgimages/wallpaperdesign.png"),
+                  fit: BoxFit.cover),
+            ),
+            child: (!isLoading)
+                ? Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         Expanded(
-                          child: 
-                        Column(
+                            child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
-                            
-                        Text(
-                          "$count",
-                          style: TextStyle(fontSize: 130.0),
-                        ),
-                        (paused == 0)
-                            ? Text(
-                                "NEW POTHOLES DETECTED ",
-                                style: TextStyle(
-                                    fontSize: 16.0,
-                                    fontWeight: FontWeight.bold),
-                              )
-                            : Text("PAUSED",
-                                style: TextStyle(
-                                    fontSize: 16.0,
-                                    fontWeight: FontWeight.bold)),
-                        SizedBox(height: 20.0),
-                        Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              IconButton(
-                                icon: Icon(Icons.pause_circle_outline),
-                                iconSize: 60.0,
-                                color:
-                                    (paused != 0) ? Colors.grey : Colors.black,
-                                onPressed: (paused != 0)
-                                    ? null
-                                    : () {
-                                        pause();
-                                        setState(() {
-                                          paused = 1;
-                                        });
-                                      },
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.play_circle_outline),
-                                iconSize: 60.0,
-                                color:
-                                    (paused != 1) ? Colors.grey : Colors.black,
-                                onPressed: (paused != 1)
-                                    ? null
-                                    : () {
-                                        setState(() {
-                                          paused = 0;
-                                        });
-                                        resume();
-                                      },
-                              )
-                            ]),
-                            
+                            Text(
+                              "$count",
+                              style: TextStyle(fontSize: 180.0),
+                            ),
+                            (paused == 0)
+                                ? Text(
+                                    "NEW POTHOLES DETECTED ",
+                                    style: TextStyle(
+                                        fontSize: 20.0,
+                                        fontWeight: FontWeight.bold),
+                                  )
+                                : Text("PAUSED",
+                                    style: TextStyle(
+                                        fontSize: 16.0,
+                                        fontWeight: FontWeight.bold)),
+                            SizedBox(height: 20.0),
+                            Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: <Widget>[
+                                  IconButton(
+                                    icon: Icon(Icons.pause_circle_outline),
+                                    iconSize: 60.0,
+                                    color: (paused != 0)
+                                        ? Colors.grey
+                                        : Colors.black,
+                                    onPressed: (paused != 0)
+                                        ? null
+                                        : () {
+                                            pause();
+                                            setState(() {
+                                              paused = 1;
+                                            });
+                                          },
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.play_circle_outline),
+                                    iconSize: 60.0,
+                                    color: (paused != 1)
+                                        ? Colors.grey
+                                        : Colors.black,
+                                    onPressed: (paused != 1)
+                                        ? null
+                                        : () {
+                                            setState(() {
+                                              paused = 0;
+                                            });
+                                            resume();
+                                          },
+                                  )
+                                ]),
                           ],
                         )),
                         Align(
                             alignment: Alignment.bottomCenter,
                             child: FlatButton(
                               color: Colors.black,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(80.0),
-                      side: BorderSide(color: Colors.black) ),
-                              child: Text('STOP RECORDING', style: TextStyle(fontSize: 17.0, color: Colors.white)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(80.0),
+                                  side: BorderSide(color: Colors.black)),
+                              child: Text('STOP RECORDING',
+                                  style: TextStyle(
+                                      fontSize: 17.0, color: Colors.white)),
                               // icon: Icon(Icons.stop),
                               onPressed: () {
-                                AlertDialog(
-                                  title: new Text("Thank you!"),
-                                  content: new Text(
-                                      "You recorded $count potholes! \n"),
-                                  actions: <Widget>[
-                                    // usually buttons at the bottom of the dialog
-                                    new FlatButton(
-                                      child: new Text("Close"),
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                    ),
-                                  ],
-                                );
+                                // nopotalert();
+                                // showDialog(
+                                //     context: context,
+                                //     builder: (BuildContext context) {
+                                //       // return object of type Dialog
+                                //       return AlertDialog(
+                                //         title: new Text("Thank you!"),
+                                //         content: new Text(
+                                //             "You recorded $count potholes! \n"),
+                                //         actions: <Widget>[
+                                //           // usually buttons at the bottom of the dialog
+                                //           new FlatButton(
+                                //             child: new Text("Close"),
+                                //             onPressed: () {
+                                //               Navigator.of(context).pop();
+                                //             },
+                                //           ),
+                                //         ],
+                                //       );
+                                //     });
                                 //});
-                                dispose();
+                                // dispose();
                                 Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                         builder: (context) =>
-                                            HomePage(this.uid)));
+                                            HomePage(uid, "2")));
+                                print("Stop");
                               },
                             )),
-                            SizedBox(
-                              height: 60.0
-                            )
+                        SizedBox(height: 60.0)
                       ],
                     ),
                     //   ],
                     // ),
                   ),
-                ),
+          ),
         ));
+  }
+
+  void nopotalert() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(32.0))),
+          contentPadding: EdgeInsets.only(top: 10.0),
+          content: Container(
+            width: 300.0,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text(
+                      "Oops!",
+                      style: TextStyle(fontSize: 20.0),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: 5.0,
+                ),
+                Divider(
+                  color: Colors.grey,
+                  height: 4.0,
+                ),
+                Padding(
+                  padding: EdgeInsets.only(
+                      left: 12.0, right: 12.0, top: 10.0, bottom: 10.0),
+                  child: Text(
+                      "We could not identify a pothole in this picture.",
+                      textAlign: TextAlign.center),
+                ),
+                InkWell(
+                  onTap: () {
+                    // Navigator.push(
+                    //     context,
+                    //     MaterialPageRoute(
+                    //         builder: (context) => CameraMode(uid)));
+                  },
+                  child: Container(
+                    padding: EdgeInsets.only(top: 17.0, bottom: 17.0),
+                    decoration: BoxDecoration(
+                      color: Color(0xFF89216B),
+                      borderRadius: BorderRadius.only(
+                          bottomLeft: Radius.circular(32.0),
+                          bottomRight: Radius.circular(32.0)),
+                    ),
+                    child: Text(
+                      "Try again",
+                      style: TextStyle(color: Colors.white),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }

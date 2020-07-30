@@ -9,6 +9,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:potholedetection/screens/New/home.dart';
+import 'package:potholedetection/screens/dashboard.dart';
 
 class Response {
   final List<Data> resp;
@@ -55,20 +57,23 @@ class _CameraModeState extends State<CameraMode> {
   String loc_data = "";
   String current_address = "";
   String loc_lat, loc_lon, loc_pin;
+  TextEditingController urlcontroller = TextEditingController();
   final String uid;
   List<DocumentSnapshot> list = List();
   QuerySnapshot querySnapshot;
   _CameraModeState(this.uid);
+  String finalurl;
 
   Future getImage(bool isCamera) async {
     File image;
     if (isCamera) {
       // ignore: deprecated_member_use
       image = await ImagePicker.pickImage(source: ImageSource.camera);
-    } else {
-      // ignore: deprecated_member_use
-      image = await ImagePicker.pickImage(source: ImageSource.gallery);
     }
+    // else {
+    //   // ignore: deprecated_member_use
+    //   image = await ImagePicker.pickImage(source: ImageSource.gallery);
+    // }
 
     setState(() {
       _image = image;
@@ -85,7 +90,7 @@ class _CameraModeState extends State<CameraMode> {
     var length = await _image.length();
 
     // string to uri
-    var uri = Uri.parse('http://b0a52610a834.ngrok.io/detections');
+    var uri = Uri.parse(finalurl);
 
     // create multipart request
     var request = new http.MultipartRequest("POST", uri);
@@ -124,7 +129,8 @@ class _CameraModeState extends State<CameraMode> {
 
     print(product.resp);
     if (product.resp == null)
-      nopot();
+      // nopot();
+      nopotalert();
     else {
       Data data = product.resp[0];
       if (data.clas == "Pothole" && data.confidence >= 0.3) {
@@ -133,7 +139,8 @@ class _CameraModeState extends State<CameraMode> {
           pothole = 1;
         });
       } else
-        nopot();
+        // nopot();
+        nopotalert();
       setState(() {
         confirm = 0;
       });
@@ -175,14 +182,18 @@ class _CameraModeState extends State<CameraMode> {
       if (list.length != null) {
         for (int i = 0; i < list.length; i++) {
           if (list[i].data["lat"].toString().substring(0, 7) ==
-                  loc_lat.toString().substring(0, 7) &&
-              list[i].data["lon"].toString().substring(0, 7) ==
-                  loc_lon.toString().substring(0, 7) &&
-              list[i].data["userid"] != uid) {
+                      loc_lat.toString().substring(0, 7) &&
+                  list[i].data["lon"].toString().substring(0, 7) ==
+                      loc_lon.toString().substring(0, 7) &&
+                  list[i].data["userid"] != uid ||
+              list[i].data["address"] == current_address &&
+                  list[i].data["userid"] != uid) {
             print(list[i].data["userid"]);
             print(uid);
 
-            var p = list[i].data["priority"];
+            var p = (list[i].data["priority"] == null)
+              ? list[i].data["NumberOfReportings"]
+              : list[i].data["priority"];
             print("Priority is: " + p.toString());
             databaseReference
                 .collection("location_travel")
@@ -195,10 +206,12 @@ class _CameraModeState extends State<CameraMode> {
             });
             break;
           } else if (list[i].data["lat"].toString().substring(0, 7) ==
-                  loc_lat.toString().substring(0, 7) &&
-              list[i].data["lon"].toString().substring(0, 7) ==
-                  loc_lon.toString().substring(0, 7) &&
-              list[i].data["userid"] == uid) {
+                      loc_lat.toString().substring(0, 7) &&
+                  list[i].data["lon"].toString().substring(0, 7) ==
+                      loc_lon.toString().substring(0, 7) &&
+                  list[i].data["userid"] == uid ||
+              list[i].data["address"].toString() == current_address &&
+                  list[i].data["userid"] == uid) {
             print("DO NOT UPDATE");
             break;
           } else {
@@ -305,121 +318,196 @@ class _CameraModeState extends State<CameraMode> {
       title: new Center(
           child: new Text("CAPTURE IMAGE", textAlign: TextAlign.center)),
       elevation: 0,
+      actions: <Widget>[
+        GestureDetector(
+            onTap: () {
+              seturl();
+            },
+            child: Icon(Icons.add, color: Color(0xFF89216B)))
+      ],
     );
+  }
+
+  void nopotalert() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(32.0))),
+          contentPadding: EdgeInsets.only(top: 10.0),
+          content: Container(
+            width: 300.0,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text(
+                      "Oops!",
+                      style: TextStyle(fontSize: 20.0),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: 5.0,
+                ),
+                Divider(
+                  color: Colors.grey,
+                  height: 4.0,
+                ),
+                Padding(
+                  padding: EdgeInsets.only(
+                      left: 12.0, right: 12.0, top: 10.0, bottom: 10.0),
+                  child: Text(
+                      "We could not identify a pothole in this picture.",
+                      textAlign: TextAlign.center),
+                ),
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => CameraMode(uid)));
+                  },
+                  child: Container(
+                    padding: EdgeInsets.only(top: 17.0, bottom: 17.0),
+                    decoration: BoxDecoration(
+                      color: Color(0xFF89216B),
+                      borderRadius: BorderRadius.only(
+                          bottomLeft: Radius.circular(32.0),
+                          bottomRight: Radius.circular(32.0)),
+                    ),
+                    child: Text(
+                      "Try again",
+                      style: TextStyle(color: Colors.white),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  seturl() async {
+    showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            contentPadding: const EdgeInsets.all(16.0),
+            content: new Row(
+              children: <Widget>[
+                new Expanded(
+                  child: new TextField(
+                    controller: urlcontroller,
+                    autofocus: true,
+                    decoration: new InputDecoration(
+                        labelText: 'Set URL',
+                        hintText: 'http://b0a52610a834.ngrok.io/detections'),
+                  ),
+                )
+              ],
+            ),
+            actions: <Widget>[
+              new FlatButton(
+                  child: const Text('CONFIRM'),
+                  onPressed: () {
+                    setState(() {
+                      finalurl = urlcontroller.text.trim();
+                    });
+                    Navigator.pop(context);
+                  }),
+              new FlatButton(
+                  child: const Text('DISMISS'),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  }),
+            ],
+          );
+        });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: _buildAppBar(),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            getImage(true);
-          },
-          tooltip: 'Capture Image',
-          backgroundColor: Color(0xFF89216B),
-          child: Icon(Icons.camera_alt),
-        ),
-        body: new Stack(children: <Widget>[
-          new Container(
-            decoration: new BoxDecoration(
-              image: new DecorationImage(
-                image: new AssetImage("assets/bgimages/wallpaperdesign.png"),
-                fit: BoxFit.cover,
+    return WillPopScope(
+      onWillPop: () {
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => HomePage(uid, "2"))); 
+      },
+      child: Scaffold(
+          appBar: _buildAppBar(),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              // nopotalert();
+              getImage(true);
+            },
+            tooltip: 'Capture Image',
+            backgroundColor: Color(0xFF89216B),
+            child: Icon(Icons.camera_alt),
+          ),
+          body: new Stack(children: <Widget>[
+            new Container(
+              decoration: new BoxDecoration(
+                image: new DecorationImage(
+                  image: new AssetImage("assets/bgimages/wallpaperdesign.png"),
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
-          ),
-          Center(
-            child: new Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                (_image == null)
-                    ? Image(
-                        width: 200,
-                        height: 200,
-                        image: AssetImage("assets/bgimages/camtestpot.png"),
-                      )
-                    : pothole == 1
-                        ? uploadthewholething()
-                        : Center(
-                            child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: <Widget>[
-                                  Image.file(_image,
-                                      height: 300.0, width: 300.0),
-                                  SizedBox(height: 30.0),
-                                  FlatButton(
-                                      color: Colors.transparent,
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(80.0),
-                                          side:
-                                              BorderSide(color: Colors.black)),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(12.0),
-                                        child: Text("UPLOAD IMAGE",
-                                            style:
-                                                TextStyle(color: Colors.black)),
-                                      ),
-                                      onPressed: () {
-                                        //SizedBox(height: 0, width: 0);
-                                        verify();
-                                      })
-                                ]),
-                          ),
-                confirmFunct(),
-              ],
-            ),
-          )
-        ]));
+            Center(
+              child: new Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  (_image == null)
+                      ? Image(
+                          width: 200,
+                          height: 200,
+                          image: AssetImage("assets/bgimages/camtestpot.png"),
+                        )
+                      : pothole == 1
+                          ? uploadthewholething()
+                          : Center(
+                              child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: <Widget>[
+                                    Image.file(_image,
+                                        height: 300.0, width: 300.0),
+                                    SizedBox(height: 30.0),
+                                    FlatButton(
+                                        color: Colors.transparent,
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(80.0),
+                                            side: BorderSide(
+                                                color: Colors.black)),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(12.0),
+                                          child: Text("UPLOAD IMAGE",
+                                              style: TextStyle(
+                                                  color: Colors.black)),
+                                        ),
+                                        onPressed: () {
+                                          //SizedBox(height: 0, width: 0);
+                                          verify();
+                                        })
+                                  ]),
+                            ),
+                  confirmFunct(),
+                ],
+              ),
+            )
+          ])),
+    );
   }
-//   MaterialApp(
-//       home: Scaffold(
-//           body: DecoratedBox(
-//     decoration: BoxDecoration(
-//       image: DecorationImage(
-//           image: AssetImage("assets/bgimages/1920.png"), fit: BoxFit.cover),
-//     ),
-//     //Center(
-//     child: Column(
-//         mainAxisAlignment: MainAxisAlignment.spaceAround,
-//         children: <Widget>[
-//                     _image == null
-//                         ? Container(
-//                             child: Column(
-//                               children: <Widget>[
-//                                 Image(
-//                                     image: AssetImage(
-//                                   'assets/bgimages/cartoonpothole2.jpg',
-//                                 )),
-//                                 //Text("Capture an image of a pothole and upload it :) "),
-//                               ],
-//                             ),
-//                           )
-//                         : pothole == 1
-//                             ?
-//                             uploadthewholething()
-//                             : Container(
-//                                 child: Column(
-//                                   children: <Widget>[
-//                                     Image.file(_image,
-//                                         height: 300.0, width: 300.0),
-//                                     RaisedButton(
-//                                         child: Text("Upload"),
-//                                         onPressed: () {
-//                                           SizedBox(height: 0, width: 0);
-//                                           verify();
-// //                        setState(() {
-// //                          pothole = 1;
-// //                        });
-//                                         }),
-//                                     confirmFunct()
-//                                   ],
-//                                 ),
-//                               ),
-//           ]),
-//     )));
-//   }
 
   void roadtype(int val) {
     setState(() {
@@ -463,7 +551,7 @@ class _CameraModeState extends State<CameraMode> {
   uploadthewholething() {
     // pothole=0;
     return SingleChildScrollView(
-          child: Container(
+      child: Container(
         child: Padding(
           padding: const EdgeInsets.all(14.0),
           child: Column(
@@ -498,9 +586,8 @@ class _CameraModeState extends State<CameraMode> {
                   groupValue: placegroup,
                   title: const Text('Edge of the road'),
                   onChanged: roadplace),
-              Text(
-                'What is the approximate size of the pothole?',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Text('What is the approximate size of the pothole?',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               RadioListTile(
                   value: 1,
                   groupValue: sizegroup,
@@ -512,18 +599,14 @@ class _CameraModeState extends State<CameraMode> {
                   title: const Text('Small pothole'),
                   onChanged: size),
               FlatButton(
-                                        color: Colors.transparent,
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(80.0),
-                                            side:
-                                                BorderSide(color: Colors.black)),
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(12.0),
-                                          child: Text("DONE",
-                                              style:
-                                                  TextStyle(color: Colors.black)),
-                                        ),
+                  color: Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(80.0),
+                      side: BorderSide(color: Colors.black)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Text("DONE", style: TextStyle(color: Colors.black)),
+                  ),
                   onPressed: () async {
 //                setState(() {
 //                  confirm = 2;
@@ -535,13 +618,15 @@ class _CameraModeState extends State<CameraMode> {
                     else
                       surveypriority = "IMedium";
                     var time = new DateTime.now();
-                    final StorageReference firebaseStorageRef =
-                        FirebaseStorage.instance.ref().child('PotholeImages/$time');
+                    final StorageReference firebaseStorageRef = FirebaseStorage
+                        .instance
+                        .ref()
+                        .child('PotholeImages/$time');
                     final StorageUploadTask task =
                         firebaseStorageRef.putFile(_image);
 
-                    //   var downloadUrl =
-                    //     await (await task.onComplete).ref.getDownloadURL();
+                    // var downloadUrl =
+                    //   await (await task.onComplete).ref.getDownloadURL();
                     var url;
                     //url = downloadUrl.toString();
 //print(priority);
@@ -553,33 +638,6 @@ class _CameraModeState extends State<CameraMode> {
       ),
     );
   } //  enableUpload() {
-//    return
-  //
-  //       setState(() {
-  //         confirm = 2;
-  //       });
-
-  //       var time = new DateTime.now();
-  //       final StorageReference firebaseStorageRef =
-  //           FirebaseStorage.instance.ref().child('PotholeImages/$time');
-  //       final StorageUploadTask task =
-  //           firebaseStorageRef.putFile(_image);
-
-  //       var downloadUrl =
-  //           await (await task.onComplete).ref.getDownloadURL();
-  //       var url;
-  //       url = downloadUrl.toString();
-
-  //       _getCurrentLocation(url, priority);
-  //     }),
-  // Text(
-  //   loc_data + "\n\n" + current_address,
-  //   style: TextStyle(fontWeight: FontWeight.w300, fontFamily: 'Raleway', fontSize: 12),
-  // )
-//        ],
-//      ),
-//    );
-//  }
 
   Widget confirmFunct() {
     switch (confirm) {
@@ -601,7 +659,8 @@ class _CameraModeState extends State<CameraMode> {
               child: Column(
             children: <Widget>[
               CircularProgressIndicator(),
-              Text("\n    Uploading image. \nThis might take a while", textAlign: TextAlign.center)
+              Text("\n    Uploading image. \nThis might take a while",
+                  textAlign: TextAlign.center)
             ],
           ));
         }
@@ -613,7 +672,8 @@ class _CameraModeState extends State<CameraMode> {
             children: <Widget>[
               CircularProgressIndicator(),
               Text(
-                  "\nConnecting to server and verifying image. \nThis might take a while", textAlign: TextAlign.center)
+                  "\nConnecting to server and verifying image. \nThis might take a while",
+                  textAlign: TextAlign.center)
             ],
           ));
         }

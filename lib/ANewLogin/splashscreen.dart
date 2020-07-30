@@ -39,7 +39,7 @@ class _SplashPageState extends State<SplashPage> {
                                   builder: (context) =>
                                       // MainDashboard(currentUser.uid)
                                       HomePage(
-                                        currentUser.uid,
+                                        currentUser.uid,"2"
                                       ))))
                       // Navigator.push(context, MaterialPageRoute(builder: (context)=>ShowData())))
                       .catchError((err) => print(err))
@@ -58,7 +58,7 @@ class _SplashPageState extends State<SplashPage> {
               image: AssetImage("assets/bgimages/wallpaperdesign.png"),
               fit: BoxFit.cover),
         ),
-        child: Center(child: Text("SAFAR", style: TextStyle(fontSize: 30.0)))
+        child: Center(child: Text("SAFAR", style: TextStyle(fontSize: 30.0, fontWeight: FontWeight.bold)))
       ),
     );
   }

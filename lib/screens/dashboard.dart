@@ -139,8 +139,7 @@ class _MainDashboardState extends State<MainDashboard> {
             "\n" +
             Jiffy(potbyme.date).MEd.split(',')[1],
         measureFn: (Countbyuser potbyme, _) => potbyme.count,
-        fillColorFn: (_, __) =>
-            charts.Color.fromHex(code: '#940068'),
+        fillColorFn: (_, __) => charts.Color.fromHex(code: '#940068'),
         id: 'Potholes',
         data: countlist,
       ),
@@ -207,12 +206,34 @@ class _MainDashboardState extends State<MainDashboard> {
       elevation: 0,
       actions: <Widget>[
         GestureDetector(
-            onTap: () async {
-              FirebaseAuth.instance
+            onTap: () {
+              showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(28.0))),
+                contentPadding: EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
+                      title: Text('Warning'),
+                      content: Text('Are you sure you want to log out?'),
+                      actions: [
+                        FlatButton(child: Text('Yes', style: TextStyle(color: Colors.black,),), onPressed: () {
+                          FirebaseAuth.instance
                   .signOut()
                   .then((result) => Navigator.push(context,
                       MaterialPageRoute(builder: (context) => LoginPage())))
                   .catchError((err) => print(err));
+                        }),
+                        FlatButton(
+                          child: Text('No', style: TextStyle(color: Colors.black,),),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ],
+                    );
+                  });
+              
             },
             child: Icon(Icons.exit_to_app)),
         SizedBox(width: 10),
@@ -295,7 +316,7 @@ class _MainDashboardState extends State<MainDashboard> {
                                   fontSize: 55.0,
                                   fontWeight: FontWeight.w400)),
                           SizedBox(height: 10.0),
-                          Text("Potholes\nrecorded",
+                          Text("Total Potholes\nrecorded in India",
                               style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 15.0,
@@ -309,7 +330,7 @@ class _MainDashboardState extends State<MainDashboard> {
                                   fontSize: 55.0,
                                   fontWeight: FontWeight.w400)),
                           SizedBox(height: 10.0),
-                          Text("Potholes\nfixed",
+                          Text("Total Potholes\nfixed in India",
                               style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 15.0,

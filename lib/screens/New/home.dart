@@ -8,20 +8,29 @@ import 'package:potholedetection/screens/TestNew/camintro.dart';
 import 'package:potholedetection/screens/TestNew/alertintro.dart';
 
 class HomePage extends StatefulWidget {
-  final String uid;
-  HomePage(this.uid);
+  final String uid, ind;
+  HomePage(this.uid, this.ind);
   @override
-  _HomePageState createState() => _HomePageState(this.uid);
+  _HomePageState createState() => _HomePageState(this.uid, this.ind);
 }
 
 class _HomePageState extends State<HomePage> {
-  int _selectedItemIndex = 2;
-  final String uid;
+  
+  final String uid, ind;
+  int _selectedItemIndex;
 
-  _HomePageState(this.uid);
+  _HomePageState(this.uid, this.ind);
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    _selectedItemIndex = int.parse(ind);
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
+    
     final List pages = [
       // TravelStart(uid),
       TravelIntro(uid),
@@ -30,7 +39,7 @@ class _HomePageState extends State<HomePage> {
       MainDashboard(uid),
       // AlertMode("50"),
       AlertIntro(uid),
-      ViewMap(),
+      ViewMap(uid: uid),
       // TestOnboardingScreen()
     ];
 

@@ -45,9 +45,9 @@ class _MyPotholesState extends State<MyPotholes> {
                       return Column(
                         children: <Widget>[
                           ListTile(
-                            leading: (list[i].data["url"] == null)
+                            leading: (list[i].data["source"] == "sensor" || list[i].data["Source"] == "sensor" || list[i].data["source"] == "Sensor" || list[i].data["Source"] == "Sensor")
                                 ? Icon(Icons.directions_car, color: Colors.black)
-                                : Icon(Icons.camera_alt, color: Colors.black),
+                                : Icon(Icons.camera_alt,  color: Colors.black),
                             title: Text(list[i].data["address"]),
                             subtitle: Text(
                                 Jiffy(list[i].data["timeStamp"].toDate()).yMMMEdjm),
