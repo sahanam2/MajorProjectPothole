@@ -58,7 +58,8 @@ class _SplashPageState extends State<SplashPage> {
               image: AssetImage("assets/bgimages/wallpaperdesign.png"),
               fit: BoxFit.cover),
         ),
-        child: Center(child: Text("SAFAR", style: TextStyle(fontSize: 30.0, fontWeight: FontWeight.bold)))
+        child: Center(child: Text("            SAFAR\nUse Safar, don't suffer", style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold)
+        ))
       ),
     );
   }

@@ -103,8 +103,6 @@ class _TravelModeState extends State<TravelMode> {
   Future<void> getLocation() async {
     final position = await Geolocator()
         .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    print(position);
-    print("Hello");
 
     List<Placemark> placemark = await Geolocator()
         .placemarkFromCoordinates(position.latitude, position.longitude);

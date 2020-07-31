@@ -100,16 +100,6 @@ class _MainDashboardState extends State<MainDashboard> {
         count7++;
       }
     }
-    print("count");
-    print(count1);
-    print(count2);
-    print(count3);
-    print(count4);
-    print(count5);
-    print(count6);
-    print(count7);
-    print("first");
-    print(countlist);
     countlist.add(Countbyuser(uid, DateTime.now(), count1));
     countlist.add(Countbyuser(
         uid, DateTime.now().subtract(const Duration(days: 1)), count2));

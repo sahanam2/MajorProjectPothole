@@ -38,10 +38,6 @@ class Data {
         clas: parsedJson['class'], confidence: parsedJson['confidence']);
   }
 }
-//
-//@override
-//_TravelModeState createState() => _TravelModeState();
-//}
 
 class CameraMode extends StatefulWidget {
   final String uid;
@@ -80,7 +76,6 @@ class _CameraModeState extends State<CameraMode> {
     });
   }
 
-//verify(){
   Future verify() async {
     setState(() {
       confirm = 3;
@@ -129,17 +124,14 @@ class _CameraModeState extends State<CameraMode> {
 
     print(product.resp);
     if (product.resp == null)
-      // nopot();
       nopotalert();
     else {
       Data data = product.resp[0];
       if (data.clas == "Pothole" && data.confidence >= 0.3) {
-        //print("Verify fn");
         setState(() {
           pothole = 1;
         });
       } else
-        // nopot();
         nopotalert();
       setState(() {
         confirm = 0;
@@ -147,15 +139,13 @@ class _CameraModeState extends State<CameraMode> {
     }
   }
 
-  void _getCurrentLocation(String url, String survey) async {
+  void _getCurrentLocation( String surveypriority, String survey) async {
     setState(() {
       confirm = 1;
     });
     getList();
     final position = await Geolocator()
         .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    print(position);
-    print("Hello");
 
     List<Placemark> placemark = await Geolocator()
         .placemarkFromCoordinates(position.latitude, position.longitude);
@@ -199,7 +189,7 @@ class _CameraModeState extends State<CameraMode> {
                 .collection("location_travel")
                 .document(list[i].documentID)
                 .updateData({
-              "priority": p + 1,
+              "NumberOfReportings": p + 1,
               "timeStamp": DateTime.now(),
             }).then((_) {
               print("update success!");
@@ -219,14 +209,14 @@ class _CameraModeState extends State<CameraMode> {
           }
         }
       } else {
-        uploadData(uid, loc_lat2, loc_lon2, time, loc_pin, current_address, url,
-            place, 1, survey);
+        uploadData(uid, loc_lat2, loc_lon2, time, loc_pin, current_address,
+            place, 1, surveypriority, survey);
       }
       if (check == 1) {
         var priority = 1;
 
-        uploadData(uid, loc_lat2, loc_lon2, time, loc_pin, current_address, url,
-            place, priority, survey);
+        uploadData(uid, loc_lat2, loc_lon2, time, loc_pin, current_address,
+            place, priority, surveypriority, survey);
       }
       _image = null;
       pothole = 0;
@@ -248,9 +238,9 @@ class _CameraModeState extends State<CameraMode> {
       DateTime timeStamp,
       String pincode,
       String address,
-      String url,
       Placemark place,
       var priority,
+      String surveypriority,
       String survey) async {
     //getList();
     var dateref = DateFormat("ddMMyyyy_hhmmss")
@@ -280,7 +270,8 @@ class _CameraModeState extends State<CameraMode> {
       'locality': place.locality,
       'administrativeArea': place.administrativeArea,
       'NumberOfReportings': priority,
-      'SurveyPriority': survey
+      'SurveyPriority': surveypriority,
+      'SurveyDescrption': survey
     }).then((_) {
       // print("success!");
       setState(() {
@@ -514,9 +505,11 @@ class _CameraModeState extends State<CameraMode> {
       if (val == 1) {
         roadgroup = 1;
         p1 = true;
+        survey="Main road";
       } else {
         roadgroup = 2;
         p1 = false;
+        survey="Residential road";
       }
     });
   }
@@ -526,9 +519,11 @@ class _CameraModeState extends State<CameraMode> {
       if (val == 1) {
         placegroup = 1;
         p2 = true;
+        survey = survey +","+ "Centre of the road";
       } else {
         placegroup = 2;
         p2 = false;
+        survey = survey +","+ "Edge of the road";
       }
     });
   }
@@ -538,14 +533,16 @@ class _CameraModeState extends State<CameraMode> {
       if (val == 1) {
         sizegroup = 1;
         p3 = true;
+        survey = survey + ","+"Big pothole";
       } else {
         sizegroup = 2;
         p3 = false;
+        survey = survey +","+ "Small pothole";
       }
     });
   }
 
-  String surveypriority;
+  String surveypriority, survey;
   bool p1, p2, p3;
   int roadgroup, sizegroup, placegroup;
   uploadthewholething() {
@@ -627,10 +624,9 @@ class _CameraModeState extends State<CameraMode> {
 
                     // var downloadUrl =
                     //   await (await task.onComplete).ref.getDownloadURL();
-                    var url;
+                    //var url;
                     //url = downloadUrl.toString();
-//print(priority);
-                    _getCurrentLocation(url, surveypriority);
+                    _getCurrentLocation( surveypriority, survey);
                   }),
             ],
           ),
